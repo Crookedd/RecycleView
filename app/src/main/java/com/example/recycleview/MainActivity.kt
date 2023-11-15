@@ -8,9 +8,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
+import android.widget.Toast.LENGTH_SHORT
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.lang.Math.random
 
 class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
@@ -23,7 +24,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.rView)
         //зададим менеджер компоновки - как буду размещаться эелементы
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = Adapter(this,  fetchList())
+
+        recyclerView.adapter = Adapter(this,  fetchList(), this)
 
 }
     fun fetchList(): ArrayList<ColorData> {
@@ -43,29 +45,44 @@ class MainActivity : AppCompatActivity() {
 
         return list
     }
+
+    fun onCellClickListener(text: String, context: Context) {
+        Toast.makeText(context,"IT'S  " + text, LENGTH_SHORT).show();
+    }
+
 }
 
 data class ColorData(var Colorname: String, var Colorhex: Int);
 
-class Adapter(private val context: Context, list: ArrayList<ColorData>) : RecyclerView.Adapter<Adapter.mViewHolder>(){
-    class mViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
+class Adapter(private val context: Context, private val colorList: ArrayList<ColorData>, private val cellClickListener: MainActivity): RecyclerView.Adapter<Adapter.myViewHolder>() {
+    class myViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val myColorImg: View = itemView.findViewById(R.id.view)
         val myTextView: TextView = itemView.findViewById(R.id.textView)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): mViewHolder {
-        val inflater = LayoutInflater.from(context)
-        val view = inflater.inflate(R.layout.color_item, parent, false)
-        return mViewHolder(view)
+    //вызывается каждый раз, когда надо создать новый элемент списка
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): myViewHolder {
+        val view = LayoutInflater.from(context).inflate(R.layout.rview_item, parent, false)
+        return myViewHolder(view)
     }
 
+    //количество элементов
     override fun getItemCount(): Int {
-        return list.size
+        return colorList.size
+    }
+    interface CellClickListener {
+        fun onCellClickListener(text: String, context: Context) {
+            Toast.makeText(context,"IT'S  " + text, LENGTH_SHORT).show();
+        }
+    }
+    //связь данных с представлением view
+    override fun onBindViewHolder(holder: Adapter.myViewHolder, position: Int) {
+        holder.itemView.setOnClickListener {
+            cellClickListener.onCellClickListener(colorList[position].Colorname, context)
+        }
+        val data = colorList[position]
+        holder.myColorImg.setBackgroundColor(data.Colorhex)
+        holder.myTextView.text = data.Colorname
     }
 
-    override fun onBindViewHolder(holder: mViewHolder, position: Int) {
-        val data = list[position]
-        holder.myColorImg.setBackgroundColor(data.colorHex)
-        holder.myTextView.text = data.colorName
-    }
 }
